@@ -1,4 +1,33 @@
-# Exhaust Fabricator v0.14.16
+# Exhaust Fabricator
+
+**A Blender add-on (extension) for parametric automotive exhaust fabrication.**
+
+Exhaust Fabricator lets you design and model automotive exhaust systems directly in Blender as editable, fabrication-oriented parts rather than freeform meshes or generic curve sweeps. It's built specifically for exhaust/header work, not general industrial piping.
+
+## What it does
+
+- **Routes** — straight tube and mandrel-bend segments, built up piece by piece, with configurable OD/wall thickness, end treatments (plain, expanded, reduced, slip-socket), and bolt-on connection hardware (V-band, round weld flange, 2-bolt and 3-bolt automotive flat flanges)
+- **Pie-cut bends** — fabrication-style bends made from straight mitered tube sections welded together, as an alternative to a smooth mandrel bend
+- **Reducers/expanders** — simple conical transitions between two pipe diameters
+- **Y-pipes, X-pipes, H-pipes** — junction/merge components with true communicating crossovers and shared saddle merges, in several topology styles (swept, classic, parallel, tangent/side-entry, custom)
+- **Collectors** — radially symmetric N-to-1 merge collectors (4-into-1, 6-into-1, etc.) with configurable outlet fabrication and connection hardware
+- **Headers** — the flagship feature: a coordinated set of primary pipes (one per exhaust port) sharing one cylinder-head flange, with:
+  - live equal-length analysis across all primaries
+  - a shared head flange generated automatically from the primary layout
+  - an assisted routing solver that automatically generates a collision-free, length-matched path from each primary's start to its assigned collector inlet — including a "Complete to Collector" mode that keeps whatever segments you've drawn by hand and auto-routes only the remainder
+  - optional primary-to-primary collision avoidance, keep-out geometry (route around obstacles like an oil pan or frame rail), and editable guide-spline routing hints
+
+## Requirements
+
+Blender 4.2 or newer. Install the latest release zip from this repo as a Blender extension (Edit → Preferences → Get Extensions → Install from Disk, or drag-and-drop onto the Blender window).
+
+## Status
+
+The core Route/Collector/junction/reducer modeling is stable. The assisted-routing / keep-out / guide-spline Header workflow (see the version history below and `Exhaust_Fabricator_Handoff_v0.14.5.md` for full architecture notes) is still experimental and under active development.
+
+---
+
+# Version history
 
 ## Header primary interface cleanup
 
