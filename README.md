@@ -21,8 +21,8 @@ Exhaust Fabricator lets you design and model automotive exhaust systems directly
 
 <table>
 <tr>
-<td><img src="screenshots/Screenshot 2026-08-31 011900.png" width="400" alt="4-into-1 header, close-up render"><br><sub>4-into-1 header, rendered</sub></td>
-<td><img src="screenshots/Screenshot 2026-08-31 012108.png" width="400" alt="4-into-1 header with 3-bolt flange, two angles"><br><sub>4-into-1 header with a 3-bolt automotive flange</sub></td>
+<td><img src="screenshots/Screenshot 2026-08-31 011900.png" width="400" alt="5-into-1 header, close-up render"><br><sub>5-into-1 header, rendered</sub></td>
+<td><img src="screenshots/Screenshot 2026-08-31 012108.png" width="400" alt="5-into-1 header with 3-bolt flange, two angles"><br><sub>5-into-1 header with a 3-bolt automotive flange</sub></td>
 </tr>
 <tr>
 <td><img src="screenshots/Screenshot 2026-08-31 012357.png" width="400" alt="Collector merge core, cutaway interior view"><br><sub>Collector's non-overlapping merge core, interior view</sub></td>
