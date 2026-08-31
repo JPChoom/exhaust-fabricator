@@ -17,6 +17,21 @@ Exhaust Fabricator lets you design and model automotive exhaust systems directly
   - an assisted routing solver that automatically generates a collision-free, length-matched path from each primary's start to its assigned collector inlet — including a "Complete to Collector" mode that keeps whatever segments you've drawn by hand and auto-routes only the remainder
   - optional primary-to-primary collision avoidance, keep-out geometry (route around obstacles like an oil pan or frame rail), and editable guide-spline routing hints
 
+## Screenshots
+
+<table>
+<tr>
+<td><img src="screenshots/Screenshot 2026-08-31 011900.png" width="400" alt="4-into-1 header, close-up render"><br><sub>4-into-1 header, rendered</sub></td>
+<td><img src="screenshots/Screenshot 2026-08-31 012108.png" width="400" alt="4-into-1 header with 3-bolt flange, two angles"><br><sub>4-into-1 header with a 3-bolt automotive flange</sub></td>
+</tr>
+<tr>
+<td><img src="screenshots/Screenshot 2026-08-31 012357.png" width="400" alt="Collector merge core, cutaway interior view"><br><sub>Collector's non-overlapping merge core, interior view</sub></td>
+<td><img src="screenshots/Screenshot 2026-08-31 011445.png" width="400" alt="Blender sidebar showing the Header assisted-routing panel"><br><sub>The Header panel in Blender — assisted routing, live length analysis</sub></td>
+</tr>
+</table>
+
+More screenshots are in [`screenshots/`](screenshots/), including 5-, 6-, and 8-primary collector variations and the Route/end-treatment/hardware panels.
+
 ## Requirements
 
 Blender 4.2 or newer. Install the latest release zip from this repo as a Blender extension (Edit → Preferences → Get Extensions → Install from Disk, or drag-and-drop onto the Blender window).
