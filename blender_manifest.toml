@@ -1,0 +1,10 @@
+schema_version = "1.0.0"
+id = "exhaust_fabricator"
+version = "0.14.18"
+name = "Exhaust Fabricator"
+tagline = "Automotive exhaust routing, junctions, fabrication hardware, and equal-length header design"
+maintainer = "JP / OpenAI"
+type = "add-on"
+tags = ["Modeling"]
+blender_version_min = "4.2.0"
+license = ["SPDX:GPL-3.0-or-later"]

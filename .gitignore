@@ -1,0 +1,12 @@
+# Historical release archives - built from source, not tracked here
+*.zip
+
+# Local Blender project files (not part of the add-on)
+projects/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Local editor/tool config
+.claude/
