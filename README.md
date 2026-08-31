@@ -32,6 +32,12 @@ Exhaust Fabricator lets you design and model automotive exhaust systems directly
 
 More screenshots are in [`screenshots/`](screenshots/), including 5-, 6-, and 8-primary collector variations and the Route/end-treatment/hardware panels.
 
+### Screen recording
+
+<video src="https://github.com/JPChoom/exhaust-fabricator/raw/master/screenshots/Recording%202026-08-31%20013206.mp4" controls width="600"></video>
+
+If the player above doesn't load, [watch/download the recording directly](screenshots/Recording%202026-08-31%20013206.mp4).
+
 ## Requirements
 
 Blender 4.2 or newer. Install the latest release zip from this repo as a Blender extension (Edit → Preferences → Get Extensions → Install from Disk, or drag-and-drop onto the Blender window).
