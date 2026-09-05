@@ -923,6 +923,7 @@ def _solve_one_header_primary(header, primary_index, frozen_target_length=None, 
         hs.solver_auto_clocking_search, hs.solver_bend_resolution,
         guide_probes, guide_influence, route_matrix_world=route.matrix_world,
         dense_search=dense_search,
+        start_radius=(hs.solver_start_clr if hs.solver_use_tight_start_clr else None),
     )
     if candidate is None:
         return False, ("No collision-free route within the current CLR / angle / dogleg limits" if obstacles else "No feasible route within the current CLR / angle / dogleg limits"), None
@@ -1126,6 +1127,12 @@ def _solve_one_header_primary_completion(header, primary_index, world_keepout_ob
         hs.solver_auto_clocking_search, hs.solver_bend_resolution,
         None, 0.0, route_matrix_world=frame_matrix_world,
         dense_search=False,
+        # Tighter Start CLR is intentionally NOT applied here: it exists for the
+        # first bend nearest the flange, and by the time a user has a manual
+        # prefix to complete from, that tight-clearance zone is normally
+        # exactly the part they already hand-built. Applying it again here
+        # would tighten the SOLVER's own first bend instead, which is no
+        # longer anywhere near the flange.
     )
     if candidate is None:
         return False, ("No collision-free completion within the current CLR / angle / dogleg limits" if obstacles else "No feasible completion within the current CLR / angle / dogleg limits"), None

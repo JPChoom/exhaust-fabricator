@@ -840,6 +840,10 @@ class EXHAUST_PT_HeaderAssistedRouting(bpy.types.Panel):
         layout = self.layout
         layout.label(text="Generates Straight + Mandrel Bend segments")
         layout.prop(s, "solver_clr")
+        tight_row = layout.row(align=True)
+        tight_row.prop(s, "solver_use_tight_start_clr")
+        if s.solver_use_tight_start_clr:
+            tight_row.prop(s, "solver_start_clr", text="")
         layout.prop(s, "solver_min_straight")
         layout.prop(s, "solver_max_bend_angle")
         layout.prop(s, "solver_max_dogleg_offset")

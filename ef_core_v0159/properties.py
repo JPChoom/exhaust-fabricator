@@ -354,6 +354,16 @@ class EXHAUST_PG_Header(bpy.types.PropertyGroup):
         description="How tight or gentle the bends are that the assisted router creates. "
                     "\"CLR\" = Centerline Radius: a smaller number makes sharp/tight bends, a larger number makes wide/gentle bends",
     )
+    solver_use_tight_start_clr: BoolProperty(
+        name="Tighter CLR Near Flange", default=False,
+        description="Use a different (usually tighter) CLR for just the first bend nearest the flange, then Routing CLR for the rest of the primary. "
+                    "Common in real headers to clear a steering shaft, frame rail, or motor mount right off the head, then sweep normally after that",
+    )
+    solver_start_clr: FloatProperty(
+        name="Start CLR", subtype='DISTANCE', default=3.0 * INCH, min=0.001,
+        description="CLR used for only the first bend nearest the flange, in place of Routing CLR, while Tighter CLR Near Flange is enabled. "
+                    "Typically set tighter than Routing CLR (e.g. 1.0-1.25x the tube OD) to clear tight packaging right off the head",
+    )
     solver_min_straight: FloatProperty(
         name="Minimum Straight", subtype='DISTANCE', default=0.50 * INCH, min=0.0,
         description="The shortest straight section the router will leave between two bends (or before/after a bend), so bends don't crowd into each other",

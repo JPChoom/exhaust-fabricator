@@ -64,13 +64,21 @@ def _turn_from_to(tangent, up, desired):
 
 
 def _candidate(target_point, target_tangent, radius, a, b, offset, dogleg_clocking,
-               min_straight, max_bend_angle):
+               min_straight, max_bend_angle, start_radius=None):
     """Build one exact-pose 3-corner filleted-polyline candidate.
 
     S=(0,0,0), start tangent=+X.  A lies on the start ray, B lies backwards
     from the target along its requested final tangent, and M is the midpoint of
-    AB shifted in a clockable lateral direction.  Filleting A/M/B with constant
-    radius gives 4 straights + 3 mandrel bends.
+    AB shifted in a clockable lateral direction.  Filleting A/M/B gives 4
+    straights + 3 mandrel bends.
+
+    `start_radius`, when given, is used only for the first bend (at corner A,
+    nearest the search's own start pose) instead of `radius`; the other two
+    bends (at M and B) always use `radius`. This mirrors a common real-world
+    fabrication practice: a tighter CLR right off the cylinder head flange to
+    clear packaging (steering shaft, frame rail, motor mount), transitioning
+    to a standard/sweeping CLR for the rest of the primary. Leaving it None
+    (the default) reproduces the exact prior single-radius behavior.
     """
     S = Vector((0.0, 0.0, 0.0))
     t0 = Vector((1.0, 0.0, 0.0))
@@ -78,6 +86,8 @@ def _candidate(target_point, target_tangent, radius, a, b, offset, dogleg_clocki
     T = Vector(target_point)
     tf = _safe_normal(Vector(target_tangent), t0)
     R = max(1.0e-6, float(radius))
+    R1 = max(1.0e-6, float(start_radius)) if start_radius is not None else R
+    radii = (R1, R, R)
 
     lateral = _rotation(t0, dogleg_clocking) @ up0
     lateral = _safe_normal(lateral - t0 * lateral.dot(t0), up0)
@@ -105,11 +115,11 @@ def _candidate(target_point, target_tangent, radius, a, b, offset, dogleg_clocki
         return None
 
     trims = []
-    for theta in thetas:
+    for theta, r in zip(thetas, radii):
         if theta < 1.0e-7:
             trims.append(0.0)
         else:
-            trims.append(R * math.tan(theta * 0.5))
+            trims.append(r * math.tan(theta * 0.5))
     q1, q2, q3 = trims
 
     L0 = float(a) - q1
@@ -135,11 +145,12 @@ def _candidate(target_point, target_tangent, radius, a, b, offset, dogleg_clocki
         angle, clock, t, up = turn
         turns.append((angle, clock))
 
-    total = sum(lengths) + R * sum(thetas)
+    total = sum(lengths) + sum(r * theta for r, theta in zip(radii, thetas))
     return {
         'lengths': lengths,
         'turns': turns,
         'radius': R,
+        'radii': radii,
         'total_length': float(total),
         'offset': float(offset),
         'a': float(a),
@@ -165,7 +176,7 @@ def candidate_centerline_points(candidate, bend_samples=12):
     p = Vector((0.0, 0.0, 0.0))
     tangent = Vector((1.0, 0.0, 0.0))
     up = Vector((0.0, 0.0, 1.0))
-    R = max(1.0e-6, float(candidate['radius']))
+    radii = candidate.get('radii') or (candidate['radius'],) * 3
     points = [p.copy()]
     lengths = candidate['lengths']
     turns = candidate['turns']
@@ -181,6 +192,7 @@ def candidate_centerline_points(candidate, bend_samples=12):
         angle = abs(float(angle))
         if angle <= 1.0e-9:
             continue
+        R = max(1.0e-6, float(radii[i]))
         clock_rot = _rotation(tangent, float(clock))
         bend_dir = _safe_normal(clock_rot @ up, up)
         bend_dir = _safe_normal(bend_dir - tangent * bend_dir.dot(tangent), up)
@@ -210,7 +222,7 @@ def candidate_capsule_chain(candidate, tube_radius, bend_samples=12):
     p = Vector((0.0, 0.0, 0.0))
     tangent = Vector((1.0, 0.0, 0.0))
     up = Vector((0.0, 0.0, 1.0))
-    R = max(1.0e-6, float(candidate['radius']))
+    radii = candidate.get('radii') or (candidate['radius'],) * 3
     base_r = max(0.0, float(tube_radius))
     chain = []
     lengths = candidate['lengths']
@@ -228,6 +240,7 @@ def candidate_capsule_chain(candidate, tube_radius, bend_samples=12):
         angle = abs(float(angle))
         if angle <= 1.0e-9:
             continue
+        R = max(1.0e-6, float(radii[i]))
         clock_rot = _rotation(tangent, float(clock))
         bend_dir = _safe_normal(clock_rot @ up, up)
         bend_dir = _safe_normal(bend_dir - tangent * bend_dir.dot(tangent), up)
@@ -299,8 +312,18 @@ def solve_primary_route(target_point, target_tangent, target_length, radius,
                         candidate_radius=0.0, collision_clearance=0.0,
                         avoid_collisions=False, auto_clocking_search=True, route_bend_resolution=16,
                         guide_probe_points=None, guide_influence=0.0, route_matrix_world=None,
-                        dense_search=False):
+                        dense_search=False, start_radius=None):
     """Search for an exact endpoint/tangent Route candidate.
+
+    `start_radius`, when given, uses a different CLR for only the first bend
+    (the one nearest the search's own start pose) instead of `radius` --
+    matching the common fabrication practice of a tighter bend right off the
+    cylinder head flange for packaging clearance, then a standard/sweeping
+    CLR for the rest of the primary. Fixed by the caller, not searched or
+    refined, since it represents a real physical constraint (a specific CLR
+    tube/die available, or a specific clearance needed) rather than a free
+    optimization variable. Leaving it None reproduces the exact prior
+    single-radius behavior.
 
     Returns a candidate dict or None.  Position and tangent are guaranteed by
     construction.  With match_length enabled, optimization approaches the
@@ -547,7 +570,7 @@ def solve_primary_route(target_point, target_tangent, target_length, radius,
                 for b in b_vals:
                     for off in off_vals:
                         with stage('candidate_generation'):
-                            c = _candidate(T, tf, R, a, b, off, used_clocking, minL, max_angle)
+                            c = _candidate(T, tf, R, a, b, off, used_clocking, minL, max_angle, start_radius=start_radius)
                         consider(c, used_clocking)
 
     if best is None:
@@ -561,6 +584,7 @@ def solve_primary_route(target_point, target_tangent, target_length, radius,
                 candidate_radius, collision_clearance, avoid_collisions,
                 auto_clocking_search, route_bend_resolution, None, 0.0,
                 route_matrix_world=route_matrix_world, dense_search=dense_search,
+                start_radius=start_radius,
             )
         return None
 
@@ -588,7 +612,7 @@ def solve_primary_route(target_point, target_tangent, target_length, radius,
                             off = _clamp(base['offset'] + so * do, off_lo, off_hi)
                             used_clocking = base_clock + sc * dc
                             with stage('candidate_generation'):
-                                c = _candidate(T, tf, R, a, b, off, used_clocking, minL, max_angle)
+                                c = _candidate(T, tf, R, a, b, off, used_clocking, minL, max_angle, start_radius=start_radius)
                             consider(c, used_clocking)
             da *= 0.45; db *= 0.45; do *= 0.45; dc *= 0.45
 
@@ -605,7 +629,7 @@ def candidate_segments(candidate, bend_resolution=16):
     """Convert a candidate into Route-segment dictionaries."""
     if not candidate:
         return []
-    R = float(candidate['radius'])
+    radii = candidate.get('radii') or (candidate['radius'],) * 3
     lengths = candidate['lengths']
     turns = candidate['turns']
     result = []
@@ -617,7 +641,7 @@ def candidate_segments(candidate, bend_resolution=16):
             angle, clock = turns[i]
             if abs(angle) > 1.0e-7:
                 result.append({
-                    'kind': 'BEND', 'bend_style': 'MANDREL', 'radius': R,
+                    'kind': 'BEND', 'bend_style': 'MANDREL', 'radius': float(radii[i]),
                     'angle': float(angle), 'clocking': float(clock),
                     'resolution': max(2, int(bend_resolution)),
                 })
