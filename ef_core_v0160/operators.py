@@ -138,6 +138,35 @@ def _arrange_header_starts(header_obj):
         route.rotation_euler = (0.0, 0.0, 0.0)
 
 
+def _apply_header_primary_count(header_obj):
+    """Add/remove primary Routes until the Header has exactly Desired Primary Count.
+
+    Shared by the manual "Apply Count" operator and the Primary Count property's
+    own update callback, so dragging/typing a new count applies immediately
+    without a separate button click.
+    """
+    hs = header_obj.exhaust_header
+    desired = max(2, min(12, int(hs.desired_primary_count)))
+    routes = header_primary_objects(header_obj)
+    while len(routes) < desired:
+        _create_header_primary(header_obj, len(routes))
+        routes = header_primary_objects(header_obj)
+    while len(routes) > desired:
+        route = routes[-1]
+        guide = guide_for_route(route)
+        if guide is not None:
+            data = guide.data
+            bpy.data.objects.remove(guide, do_unlink=True)
+            if data and data.users == 0:
+                bpy.data.curves.remove(data)
+        bpy.data.objects.remove(route, do_unlink=True)
+        routes = header_primary_objects(header_obj)
+    _reindex_header(header_obj)
+    hs.active_primary = max(0, min(hs.active_primary, max(0, len(routes) - 1)))
+    rebuild_header_flange_object(header_obj)
+    refresh_header_stats(header_obj)
+
+
 class EXHAUST_OT_AddHeader(bpy.types.Operator):
     bl_idname = "exhaust.add_header"
     bl_label = "Add Header"
@@ -149,13 +178,11 @@ class EXHAUST_OT_AddHeader(bpy.types.Operator):
         header = _new_header_object(context, f"Exhaust_Header_{self.primary_count}Cyl")
         hs = header.exhaust_header
         hs.is_header = True
+        # Setting desired_primary_count fires its own update callback, which
+        # creates exactly this many primaries and arranges/rebuilds the flange
+        # for us -- a separate manual creation loop here would double them up.
         hs.desired_primary_count = self.primary_count
         hs.target_length = hs.initial_primary_length
-        for i in range(self.primary_count):
-            _create_header_primary(header, i)
-        _arrange_header_starts(header)
-        rebuild_header_flange_object(header)
-        refresh_header_stats(header)
         for obj in context.selected_objects:
             obj.select_set(False)
         header.select_set(True)
@@ -174,25 +201,7 @@ class EXHAUST_OT_HeaderApplyCount(bpy.types.Operator):
         hs = getattr(header, "exhaust_header", None) if header else None
         if not hs or not hs.is_header:
             return {'CANCELLED'}
-        desired = max(2, min(12, int(hs.desired_primary_count)))
-        routes = header_primary_objects(header)
-        while len(routes) < desired:
-            _create_header_primary(header, len(routes))
-            routes = header_primary_objects(header)
-        while len(routes) > desired:
-            route = routes[-1]
-            guide = guide_for_route(route)
-            if guide is not None:
-                data = guide.data
-                bpy.data.objects.remove(guide, do_unlink=True)
-                if data and data.users == 0:
-                    bpy.data.curves.remove(data)
-            bpy.data.objects.remove(route, do_unlink=True)
-            routes = header_primary_objects(header)
-        _reindex_header(header)
-        hs.active_primary = max(0, min(hs.active_primary, max(0, len(routes) - 1)))
-        rebuild_header_flange_object(header)
-        refresh_header_stats(header)
+        _apply_header_primary_count(header)
         return {'FINISHED'}
 
 

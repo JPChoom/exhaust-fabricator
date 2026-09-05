@@ -666,10 +666,8 @@ class EXHAUST_PT_HeaderSetup(bpy.types.Panel):
         s = _header_settings(context)
         layout = self.layout
         layout.prop(s, "desired_primary_count")
-        layout.operator("exhaust.header_apply_count", text="Apply Count")
         layout.prop(s, "initial_primary_length")
         layout.prop(s, "port_spacing")
-        layout.operator("exhaust.header_arrange_starts", text="Arrange Primary Starts")
 
 
 class EXHAUST_PT_HeaderTube(bpy.types.Panel):

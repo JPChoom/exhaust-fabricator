@@ -254,12 +254,51 @@ def _update_header_tube_size(self, context):
         pass
 
 
+def _update_header_primary_count(self, context):
+    """Add/remove primary Routes to match Primary Count as soon as it changes.
+
+    Replaces a manual "Apply Count" button click; also re-spaces the primary
+    starts afterward (Port Spacing), since newly added/removed primaries need
+    their positions recomputed immediately, not left wherever the last count
+    happened to leave them.
+    """
+    try:
+        header = self.id_data
+        if not header or not getattr(header, "exhaust_header", None) or not header.exhaust_header.is_header:
+            return
+        from .operators import _apply_header_primary_count, _arrange_header_starts
+        _apply_header_primary_count(header)
+        _arrange_header_starts(header)
+        from .geometry import rebuild_header_flange_object
+        rebuild_header_flange_object(header)
+    except Exception:
+        pass
+
+
+def _update_header_port_spacing(self, context):
+    """Re-space primary starts as soon as Port Spacing changes.
+
+    Replaces a manual "Arrange Primary Starts" button click.
+    """
+    try:
+        header = self.id_data
+        if not header or not getattr(header, "exhaust_header", None) or not header.exhaust_header.is_header:
+            return
+        from .operators import _arrange_header_starts
+        _arrange_header_starts(header)
+        from .geometry import rebuild_header_flange_object
+        rebuild_header_flange_object(header)
+    except Exception:
+        pass
+
+
 class EXHAUST_PG_Header(bpy.types.PropertyGroup):
     is_header: BoolProperty(default=False)
     desired_primary_count: IntProperty(
         name="Primary Count", default=4, min=2, max=12,
         description="How many primary pipes (the individual tubes leaving each exhaust port) this Header should have. "
-                    "Changing this number doesn't add or remove pipes by itself -- click Apply Count below to do that",
+                    "Pipes are added or removed and re-spaced automatically as soon as you change this",
+        update=_update_header_primary_count,
     )
     primary_od: FloatProperty(
         name="Primary OD", subtype='DISTANCE', default=1.75 * INCH, min=0.001,
@@ -279,7 +318,8 @@ class EXHAUST_PG_Header(bpy.types.PropertyGroup):
     )
     port_spacing: FloatProperty(
         name="Port Spacing", subtype='DISTANCE', default=2.0 * INCH, min=0.0,
-        description="Distance between the centers of neighboring exhaust ports, used when arranging primary start positions",
+        description="Distance between the centers of neighboring exhaust ports. Primary start positions are re-spaced automatically as soon as you change this",
+        update=_update_header_port_spacing,
     )
     flange_thickness: FloatProperty(
         name="Flange Thickness", subtype='DISTANCE', default=0.375 * INCH, min=0.001,

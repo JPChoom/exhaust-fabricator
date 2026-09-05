@@ -1,6 +1,6 @@
 schema_version = "1.0.0"
 id = "exhaust_fabricator"
-version = "0.14.19"
+version = "0.14.20"
 name = "Exhaust Fabricator"
 tagline = "Automotive exhaust routing, junctions, fabrication hardware, and equal-length header design"
 maintainer = "JP / OpenAI"
