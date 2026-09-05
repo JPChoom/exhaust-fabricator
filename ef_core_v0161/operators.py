@@ -1260,6 +1260,32 @@ def _restore_header_primary_states(routes, states):
         _restore_primary_state(route, state)
 
 
+def _blank_primary_state(hs):
+    """A fresh, never-generated primary state: one default straight segment,
+    matching what a newly-created Header primary starts with (see
+    _create_header_primary), and no assisted-solver metadata.
+
+    Used so Generate All Primaries always searches from a clean slate instead
+    of whatever happens to already be on each primary (leftover from a prior
+    Generate, a hand-edited Complete-to-Collector prefix, etc.) -- that old
+    content would otherwise still count as a real collision obstacle for
+    whichever primaries get solved earlier in a given order/phase attempt,
+    even though it has nothing to do with the result being searched for now.
+    """
+    segments = [{
+        'kind': 'STRAIGHT', 'length': max(0.001, float(hs.initial_primary_length)),
+        'bend_style': 'MANDREL', 'radius': 3.0 * INCH,
+        'angle': 0.0, 'clocking': 0.0, 'resolution': 16,
+        'pie_sections': 6, 'show_pie_weld_seams': True,
+    }]
+    return {'segments': (segments, 0), 'meta': {}}
+
+
+def _blank_header_primary_states(header, routes):
+    hs = header.exhaust_header
+    return [_blank_primary_state(hs) for _ in routes]
+
+
 def _group_solve_orders(count, quality='NORMAL'):
     """Return deterministic alternative primary orders for global collision search.
 
@@ -1602,6 +1628,13 @@ def _solve_header_primary_set(header, routes, target):
     original_phase = float(cs.radial_phase)
     original_offset = int(hs.collector_port_offset)
     original_reverse = bool(hs.collector_reverse_order)
+    # Every attempt below searches from a blank slate (one default straight
+    # segment per primary), not from whatever's currently on each primary --
+    # see _blank_primary_state's docstring for why leftover content would
+    # otherwise silently bias the search as a stale collision obstacle.
+    # original_states is kept as-is and still used to restore the user's
+    # actual pre-click layout if the search ultimately fails outright.
+    blank_states = _blank_header_primary_states(header, routes)
 
     # Keep-out geometry doesn't move with collector phase or primary order, so
     # build its (potentially expensive) world-space obstacle representation
@@ -1639,7 +1672,7 @@ def _solve_header_primary_set(header, routes, target):
                 break
             phase_start = mark()
             tested += 1
-            _restore_header_primary_states(routes, original_states)
+            _restore_header_primary_states(routes, blank_states)
             cs.radial_phase = float(phase)
             hs.collector_port_offset = int(map_offset)
             hs.collector_reverse_order = bool(map_reverse)

@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Exhaust Fabricator",
     "author": "JP / OpenAI",
-    "version": (0, 14, 20),
+    "version": (0, 14, 21),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Exhaust",
     "description": "Parametric automotive exhaust fabrication and equal-length header design",
@@ -21,6 +21,6 @@ for _name in list(sys.modules):
     if _name.startswith(__name__ + ".ef_core_") or _name.startswith(__name__ + ".exhaust_fabricator"):
         sys.modules.pop(_name, None)
 
-from .ef_core_v0160 import register, unregister
+from .ef_core_v0161 import register, unregister
 
 __all__ = ("register", "unregister")
